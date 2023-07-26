@@ -51,7 +51,7 @@ def download(update: Update, context: CallbackContext):
 
         return SELECT_REPO
     else:
-        update.message.reply_text('Failed to fetch repository information. Please try again later.')
+        update.message.reply_text('The Owner Has Not Provided The Access To The APK File Yet...')
 
 # Callback handler for repository selection
 def select_repo(update: Update, context: CallbackContext):
@@ -89,9 +89,13 @@ def select_repo(update: Update, context: CallbackContext):
             traceback.print_exc()  # Print the traceback for debugging purposes
             query.message.reply_text(f'Error occurred while processing the release information: {str(e)}')
     else:
-        query.message.reply_text('Failed to fetch release information. Please try again later.')
+        query.message.reply_text('The Owner Has Not Provided The Access To The APK File Yet...')
 
     return ConversationHandler.END
+
+# Handler for unknown commands
+def unknown(update: Update, context: CallbackContext):
+    update.message.reply_text("Unknown command. Use /start or /download .")
 
 # Main function to run the bot
 def main():
@@ -109,6 +113,9 @@ def main():
         fallbacks=[],
     )
     dispatcher.add_handler(conversation_handler)
+
+    # Add handler for unknown commands
+    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, unknown))
 
     # Start the bot
     updater.start_polling()
