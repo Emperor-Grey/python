@@ -4,13 +4,11 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, CallbackContext, ConversationHandler, CallbackQueryHandler, MessageHandler, Filters
 
 # Set your Telegram bot token and GitHub access token here
-TELEGRAM_TOKEN = '6689453018:AAH21FYYGFqaXc0wPRWGhFnhLxF5gl5LCdE'
-GITHUB_ACCESS_TOKEN = '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'
-
-#kindly note that these are old tokens and do not work at the moment
+TELEGRAM_TOKEN = 'YOUR_TELEGRAM_BOT_TOKEN'
+GITHUB_ACCESS_TOKEN = 'YOUR_GITHUB_ACCESS_TOKEN'
 
 # Set your GitHub username
-GITHUB_USERNAME = 'Emperor-Grey'
+GITHUB_USERNAME = 'YOUR_GITHUB_USERNAME'
 # GitHub API endpoint for getting the user's repositories
 GITHUB_API_ENDPOINT = f'https://api.github.com/users/{GITHUB_USERNAME}/repos'
 
@@ -29,12 +27,26 @@ def download(update: Update, context: CallbackContext):
 
     if response.status_code == 200:
         repositories_data = response.json()
-        buttons = [
-            [
-                InlineKeyboardButton(repo['name'], callback_data=str(repo['name']))
-            ] for repo in repositories_data if repo['private'] is False  # Filter out private repositories
-        ]
-        reply_markup = InlineKeyboardMarkup(buttons)
+
+        # Create a list to hold the rows of buttons
+        rows = []
+        row = []  # Initialize the first row
+        for repo in repositories_data:
+            if not repo['private']:
+                # Create a button for the repository
+                button = InlineKeyboardButton(repo['name'], callback_data=str(repo['name']))
+                row.append(button)
+                # Check if we have added two buttons to the current row
+                if len(row) == 2:
+                    # Add the row to the list of rows and start a new row
+                    rows.append(row)
+                    row = []
+
+        # Check if there are any remaining buttons in the current row
+        if row:
+            rows.append(row)
+
+        reply_markup = InlineKeyboardMarkup(rows)
         update.message.reply_text('Select a repository:', reply_markup=reply_markup)
 
         return SELECT_REPO
@@ -45,7 +57,7 @@ def download(update: Update, context: CallbackContext):
 def select_repo(update: Update, context: CallbackContext):
     query = update.callback_query
     repo_name = query.data
-    query.edit_message_text(f'You selected: {repo_name}\nKindly Wait Few Minutes')
+    query.edit_message_text(f'You selected: {repo_name}')
 
     # Get the latest release for the selected repository
     headers = {'Authorization': f'token {GITHUB_ACCESS_TOKEN}'}
@@ -77,13 +89,9 @@ def select_repo(update: Update, context: CallbackContext):
             traceback.print_exc()  # Print the traceback for debugging purposes
             query.message.reply_text(f'Error occurred while processing the release information: {str(e)}')
     else:
-        query.message.reply_text('The Master has provided an Apk File Yet')
+        query.message.reply_text('Failed to fetch release information. Please try again later.')
 
     return ConversationHandler.END
-
-# Default handler for any other commands/messages
-def default_handler(update: Update, context: CallbackContext):
-    update.message.reply_text("Unknown command. Type /download or /start to use the bot")
 
 # Main function to run the bot
 def main():
@@ -101,9 +109,6 @@ def main():
         fallbacks=[],
     )
     dispatcher.add_handler(conversation_handler)
-
-    # Add default handler for any other commands/messages
-    dispatcher.add_handler(MessageHandler(~Filters.command, default_handler))
 
     # Start the bot
     updater.start_polling()
