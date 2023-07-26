@@ -7,6 +7,8 @@ from telegram.ext import Updater, CommandHandler, CallbackContext, ConversationH
 TELEGRAM_TOKEN = '6689453018:AAH21FYYGFqaXc0wPRWGhFnhLxF5gl5LCdE'
 GITHUB_ACCESS_TOKEN = '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'
 
+#kindly note that these are old tokens and do not work at the moment
+
 # Set your GitHub username
 GITHUB_USERNAME = 'Emperor-Grey'
 # GitHub API endpoint for getting the user's repositories
